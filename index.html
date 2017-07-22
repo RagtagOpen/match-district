@@ -1,0 +1,127 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <title>Congressional District matching</title> 
+    </head>
+    <body> 
+
+<div id="content" class="main-content" data-content-field="main-content" data-collection-id="582e2f2c3e00beacb43bd4e5" data-edit-main-image="Banner">
+         <div class="sqs-layout sqs-grid-12 columns-12" data-type="page" data-updated-on="1495520265440" id="page-582e2f2c3e00beacb43bd4e5"><div class="row sqs-row"><div class="col sqs-col-12 span-12"><div class="row sqs-row"><div class="col sqs-col-6 span-6"><div class="sqs-block html-block sqs-block-html" data-block-type="2" id="block-yui_3_17_2_4_1479492728419_7547"><div class="sqs-block-content"><p>If you don't know the Congressional District in which you currently live, find it here. </strong></p></div></div></div><div class="col sqs-col-6 span-6"><div class="sqs-block html-block sqs-block-html" data-block-type="2" id="block-yui_3_17_2_2_1489420365319_5464"><div class="sqs-block-content"><h2>Find Your District</h2></div></div><div class="sqs-block code-block sqs-block-code" data-block-type="23" id="block-yui_3_17_2_5_1486690987589_4467"><div class="sqs-block-content"><script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script type='text/javascript' src='config.js'></script>
+<script>
+
+    function displayResults(state, district) {
+      let districtText;
+      districtText = $("<p class='district-text'></p>").text(`Your district is ${state}-${(district === '0' ? 'at-large' : district)}.`);
+      $("#district-results").html(districtText);
+    }
+
+    function retrieveDistrict(zip, streetAddr, city, state) {
+        var mapzenAPIKey = config.MAPZEN_API_KEY;
+    $.ajax({
+      method: "GET",
+      url: `https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20json%20where%20url%3D%22https%3A%2F%2Fcongress.api.sunlightfoundation.com%2Fdistricts%2Flocate%3Fzip%3D${zip}%22&format=json&diagnostics=true&callback=`,
+      success: function(res) {
+        let jsonResults = res.query.results.json;
+        console.log(jsonResults);
+        if(jsonResults.count === "1") {
+          let result = jsonResults.results;
+          displayResults(result.state, result.district);
+        } else if (city && state && streetAddr) {
+            $.ajax({
+              url: "https://search.mapzen.com/v1/search/structured",
+              method: "GET",
+              dataType: "json",
+              data: {
+                "address": streetAddr,
+                "locality": city,
+                "region": state,
+                "postalcode": zip,
+                "api_key": mapzenAPIKey
+              },
+              success: function( data, status, jqxhr ){
+                console.log( "Request received:", data );
+                /// TODO error checking
+                var longitude = data.features[0].geometry.coordinates[0];
+                var latitude = data.features[0].geometry.coordinates[1];
+                var url = "https://congress.api.sunlightfoundation.com/districts/locate?latitude=" + latitude + "&longitude=" + longitude + "&format=json&diagnostics=true&callback="
+                $.ajax({
+                  method: "GET",
+                  url: url,
+                  success: function(res) {
+                    if(res.count === 1) {
+                      let result = res.results[0];
+                      displayResults(result.state, result.district);
+                    } else {
+                      districtText = $("<p class='district-text'></p>").text(`We could not find a district matching that address. Please check your spelling and try again.`);
+                      $("#district-results").html(districtText);
+                    }
+
+                  }
+                });
+              },
+              error: function( jqxhr, status, error ){
+                console.log( "Something went wrong!" );
+                districtText = $("<p class='district-text'></p>").text(`We could not find a district matching that address. Please check your spelling and try again.`);
+                $("#district-results").html(districtText);
+              }
+            });
+        } else {
+              districtText = $("<p class='district-text'></p>").text(`We could not find a district matching that address. Please check your spelling and try again.`);
+              $("#district-results").html(districtText);
+        }
+      }
+    })
+  };
+
+  $( () => {
+    $("form").submit((e) => {
+        e.preventDefault();
+        let zip = e.target.zip.value;
+        let streetAddr = e.target.streetAddr.value;
+        let city = e.target.city.value;
+        let state = e.target.state.value;
+        retrieveDistrict(zip, streetAddr, city, state);
+        return false;
+      });
+    });
+
+
+</script>
+
+
+ </div></div><div class="sqs-block code-block sqs-block-code" data-block-type="23" id="block-yui_3_17_2_8_1486690987589_4734"><div class="sqs-block-content"><style>
+      .submit-button{
+        width: 200px;
+        padding: 13px 0;
+        border: 0;
+        font-size: 12px;
+        font-family: "proxima-nova","Helvetica Neue",Helvetica,Arial,sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        font-style: normal;
+        color: #FFFFFF;
+        background-color: #187dc8;
+        border-radius: 3px;
+      }
+
+      .zip-field{
+        width: 200px;
+        padding: 13px 10px;
+        border-radius: 3px;
+        box-sizing: border-box;
+      }
+   </style>
+   <form class="zip-entry">
+   <input type="text" class="zip-field" name="streetAddr" placeholder="Your street address"><br><br>
+   <input type="text" class="zip-field" name="city" placeholder="Your city"><br><br>
+   <input type="text" class="zip-field" name="state" placeholder="Your state"><br><br>
+   <input type="text" class="zip-field" name="zip" placeholder="Your ZIP code"><br><br>
+    <input type="submit" class="submit-button" value="Find your district">
+     </form>
+    <div id="district-results"></div>
+</div></div></div></div></div></div></div>
+        </div>
+  </body>
+</html>
