@@ -41,7 +41,6 @@
               },
               success: function( data, status, jqxhr ){
                 console.log( "Request received:", data );
-                /// TODO error checking
                 var longitude = data.features[0].geometry.coordinates[0];
                 var latitude = data.features[0].geometry.coordinates[1];
                 var url = "https://congress.api.sunlightfoundation.com/districts/locate?latitude=" + latitude + "&longitude=" + longitude + "&format=json&diagnostics=true&callback="
@@ -67,8 +66,7 @@
               }
             });
         } else {
-              districtText = $("<p class='district-text'></p>").text(`We could not find a district matching that address. Please check your spelling and try again.`);
-              $("#district-results").html(districtText);
+            $("#street_address_fields").show();
         }
       }
     })
@@ -114,9 +112,12 @@
       }
    </style>
    <form class="zip-entry">
+       <div id="street_address_fields" style="display:none;">
+           <p>Your ZIP code isn't enough to figure out your Congressional District. Please enter your street address to try again (*we are only using your address for this lookup. We aren't storing it!)</p>
    <input type="text" class="zip-field" name="streetAddr" placeholder="Your street address"><br><br>
    <input type="text" class="zip-field" name="city" placeholder="Your city"><br><br>
    <input type="text" class="zip-field" name="state" placeholder="Your state"><br><br>
+       </div>
    <input type="text" class="zip-field" name="zip" placeholder="Your ZIP code"><br><br>
     <input type="submit" class="submit-button" value="Find your district">
      </form>
