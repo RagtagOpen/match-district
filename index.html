@@ -14,6 +14,26 @@
       let districtText;
       districtText = $("<p class='district-text'></p>").text(`Your district is ${state}-${(district === '0' ? 'at-large' : district)}.`);
       $("#district-results").html(districtText);
+      $.getJSON('mappingFile.json', function (json) {
+          if (state in json.states) {
+            let matchedText;
+            matchedText = $("<p class='district-text'></p>").text(`Your district is supporting races in ${json.states[state][0]} and ${json.states[state][1]}.`);
+            $("#matched-districts").html(matchedText);
+          } else {
+              var cdNum;
+              if (district < 10) {
+                  cdNum = "0" + district;
+              } else {
+                  cdNum = "" + district;
+              }
+              var cdKey = state + cdNum;
+              if (cdKey in json.districts) {
+                let matchedText;
+                matchedText = $("<p class='district-text'></p>").text(`Your district is supporting races in ${json.districts[cdKey][0]} and ${json.districts[cdKey][1]}.`);
+                $("#matched-districts").html(matchedText);
+              }
+          }
+      });
     }
 
     function retrieveDistrict(zip, streetAddr, city, state) {
@@ -23,7 +43,6 @@
       url: `https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20json%20where%20url%3D%22https%3A%2F%2Fcongress.api.sunlightfoundation.com%2Fdistricts%2Flocate%3Fzip%3D${zip}%22&format=json&diagnostics=true&callback=`,
       success: function(res) {
         let jsonResults = res.query.results.json;
-        console.log(jsonResults);
         if(jsonResults.count === "1") {
           let result = jsonResults.results;
           displayResults(result.state, result.district);
@@ -129,6 +148,7 @@
     <input type="submit" class="submit-button" value="Find your district">
      </form>
     <div id="district-results"></div>
+    <div id="matched-districts"></div>
 </div></div></div></div></div></div></div>
         </div>
   </body>
