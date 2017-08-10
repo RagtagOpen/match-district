@@ -11,14 +11,12 @@
 <script>
 
     function displayResults(state, district) {
-      let districtText;
-      districtText = $("<p class='district-text'></p>").text(`Your district is ${state}-${(district === '0' ? 'at-large' : district)}.`);
-      $("#district-results").html(districtText);
+      let districtDescription;
+      districtDescription = state + '-' + (district === '0' ? 'at-large' : district);
       $.getJSON('mappingFile.json', function (json) {
+          let matchedText;
           if (state in json.states) {
-            let matchedText;
-            matchedText = $("<p class='district-text'></p>").text(`Your district is supporting races in ${json.states[state][0]} and ${json.states[state][1]}.`);
-            $("#matched-districts").html(matchedText);
+              matchedText = '<b>' + json.states[state][0] + ' and ' + json.states[state][1] + '.' + '</b>';
           } else {
               var cdNum;
               if (district < 10) {
@@ -28,11 +26,11 @@
               }
               var cdKey = state + cdNum;
               if (cdKey in json.districts) {
-                let matchedText;
-                matchedText = $("<p class='district-text'></p>").text(`Your district is supporting races in ${json.districts[cdKey][0]} and ${json.districts[cdKey][1]}.`);
-                $("#matched-districts").html(matchedText);
+                  matchedText = json.districts[cdKey][0] + ' and ' + json.districts[cdKey][1] + '.';
               }
           }
+          var totalText = "You're on the " + districtDescription + ' team. Your team is supporting two important races that are happening right now: ' + '<a href="https://www.sisterdistrict.com/sister-races-2017/">' + matchedText + '</a>' + '.';
+          $("#district-results").html(totalText);
       });
     }
 
@@ -148,7 +146,10 @@
     <input type="submit" class="submit-button" value="Find your district">
      </form>
     <div id="district-results"></div>
-    <div id="matched-districts"></div>
+    <div id="district-results-footer">
+        <p>Have more questions? Check out our <a href="https://www.sisterdistrict.com/faq/">FAQ</a> here.</p>
+        <p>You can follow us <a href="https://www.facebook.com/sisterdistrict/">Facebook</a>, <a href="https://twitter.com/Sister_District">Twitter</a>, or <a href="https://www.instagram.com/sister_district">Instagram</a>.</p>
+    </div>
 </div></div></div></div></div></div></div>
         </div>
   </body>
