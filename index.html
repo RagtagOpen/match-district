@@ -11,32 +11,7 @@
 <script type='text/javascript' src='state_hash.js'></script>
 <script>
 
-    function displayResults(state, district) {
-      let districtDescription;
-      districtDescription = state + '-' + (district === '0' ? 'at-large' : district);
-      $.getJSON('mappingFile.json', function (json) {
-          let matchedText;
-          if (state in json.states) {
-              matchedText = json.states[state][0] + ' and ' + json.states[state][1];
-          } else {
-              var cdNum;
-              if (district < 10) {
-                  cdNum = "0" + district;
-              } else {
-                  cdNum = "" + district;
-              }
-              var cdKey = state + cdNum;
-              if (cdKey in json.districts) {
-                  matchedText = json.districts[cdKey][0] + ' and ' + json.districts[cdKey][1];
-              }
-          }
-          var totalText = "1. You're on the " + districtDescription + ' team. Your team is supporting two important races that are happening right now: ' + '<a href="https://www.sisterdistrict.com/sister-races-2017/">' + matchedText + '</a>' + '.';
-          $("#district-results").html(totalText);
-          $("#join-results").show();
-      });
-    }
-
-    function updateDatabase(state, district, zip, emailAddr) {
+    function updateDatabase(state, city, district, zip, emailAddr, matchedDistrict) {
         let view_key = "view_307";
         let page_key = "scene_198";
         var url = "https://api.knack.com/v1/pages/" + page_key + "/views/" + view_key + "/records";
@@ -47,14 +22,21 @@
           cdNum = "" + district;
         }
         var cdKey = state + cdNum;
+		var d = new Date();
+		var curr_date = d.getDate();
+		var curr_month = d.getMonth() + 1; //Months are zero based
+		var curr_year = d.getFullYear();
         signupData = {
             field_1: cdKey,
             field_2: emailAddr,
             field_12: state_hash[state],
             field_17: district,
+			field_21: curr_month + "/" + curr_date + "/" + curr_year,
             field_67: "Volunteer",
             field_68: zip,
-            field_148: "No"
+            field_69: city,
+            field_148: "No",
+			field_240: matchedDistrict
         };
         console.log(signupData);
         $.ajax({
@@ -78,6 +60,32 @@
         });
 	}
 
+    function displayAndStoreResults(state, district, city, zip, emailAddr) {
+      let districtDescription;
+      districtDescription = state + '-' + (district === '0' ? 'at-large' : district);
+      $.getJSON('mappingFile.json', function (json) {
+          let matchedText;
+          if (state in json.states) {
+              matchedText = json.states[state][0] + ' and ' + json.states[state][1];
+          } else {
+              var cdNum;
+              if (district < 10) {
+                  cdNum = "0" + district;
+              } else {
+                  cdNum = "" + district;
+              }
+              var cdKey = state + cdNum;
+              if (cdKey in json.districts) {
+                  matchedText = json.districts[cdKey][0] + ' and ' + json.districts[cdKey][1];
+              }
+          }
+          var totalText = "1. You're on the " + districtDescription + ' team. Your team is supporting two important races that are happening right now: ' + '<a href="https://www.sisterdistrict.com/sister-races-2017/">' + matchedText + '</a>' + '.';
+          $("#district-results").html(totalText);
+          $("#join-results").show();
+		  updateDatabase(state, city, district, zip, emailAddr, matchedText);
+      });
+    }
+
     function retrieveDistrict(zip, streetAddr, city, state, emailAddr) {
         var mapzenAPIKey = config.MAPZEN_API_KEY;
         $.ajax({
@@ -87,8 +95,7 @@
             let jsonResults = res.query.results.json;
             if(jsonResults.count === "1") {
             let result = jsonResults.results;
-            displayResults(result.state, result.district);
-            updateDatabase(result.state, result.district, zip, emailAddr);
+            displayAndStoreResults(result.state, result.district, "", zip, emailAddr);
             } else if (city && state && streetAddr) {
                 $.ajax({
                 url: "https://search.mapzen.com/v1/search/structured",
@@ -112,8 +119,7 @@
                     success: function(res) {
                         if(res.count === 1) {
                             let result = res.results[0];
-                            displayResults(result.state, result.district);
-                            updateDatabase(result.state, result.district, zip, emailAddr);
+            				displayAndStoreResults(result.state, result.district, city, zip, emailAddr);
                         } else {
                             districtText = $("<p class='district-text'></p>").text(`We could not find a district matching that address. Please check your spelling and try again.`);
                             $("#district-results").html(districtText);
@@ -176,6 +182,14 @@
       }
    </style>
    <form class="zip-entry">
+       <div style="float:left">
+           <label for="zip">I live in </label>
+           <input type="text" class="zip-field" id="zip" name="zip" placeholder="ZIP code"><br><br>
+       </div>
+       <div>
+           <label for="emailAddr">and my email address is </label>
+           <input type="text" class="zip-field" id="emailAddr" name="emailAddr" placeholder="email address"><br><br>
+       </div>
        <div id="street_address_fields" style="display:none;">
            <p>Oh no!</p>
            <p>
@@ -185,13 +199,11 @@
            <p>
            (Don&rsquo;t worry, we&rsquo;re not storing your street address).
            </p>
-   <input type="text" class="zip-field" name="streetAddr" placeholder="Your street address"><br><br>
-   <input type="text" class="zip-field" name="city" placeholder="Your city"><br><br>
-   <input type="text" class="zip-field" name="state" placeholder="Your state"><br><br>
+           <input type="text" class="zip-field" name="streetAddr" placeholder="Your street address"><br><br>
+           <input type="text" class="zip-field" name="city" placeholder="Your city"><br><br>
+           <input type="text" class="zip-field" name="state" placeholder="Your state"><br><br>
        </div>
-   <input type="text" class="zip-field" name="emailAddr" placeholder="Your email address"><br><br>
-   <input type="text" class="zip-field" name="zip" placeholder="Your ZIP code"><br><br>
-    <input type="submit" class="submit-button" value="Join">
+        <input type="submit" class="submit-button" value="Join">
      </form>
      <div id="join-results" style="display:none;">
          <p>Welcome to Sister District.<p>
