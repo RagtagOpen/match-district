@@ -8,6 +8,7 @@
 <div id="content" class="main-content" data-content-field="main-content" data-collection-id="582e2f2c3e00beacb43bd4e5" data-edit-main-image="Banner">
          <div class="sqs-layout sqs-grid-12 columns-12" data-type="page" data-updated-on="1495520265440" id="page-582e2f2c3e00beacb43bd4e5"><div class="row sqs-row"><div class="col sqs-col-12 span-12"><div class="row sqs-row"><div class="col sqs-col-6 span-6"><div class="sqs-block html-block sqs-block-html" data-block-type="2" id="block-yui_3_17_2_4_1479492728419_7547"><div class="sqs-block-content"><p>If you don't know the Congressional District in which you currently live, find it here. </strong></p></div></div></div><div class="col sqs-col-6 span-6"><div class="sqs-block html-block sqs-block-html" data-block-type="2" id="block-yui_3_17_2_2_1489420365319_5464"><div class="sqs-block-content"><h2>Find Your District</h2></div></div><div class="sqs-block code-block sqs-block-code" data-block-type="23" id="block-yui_3_17_2_5_1486690987589_4467"><div class="sqs-block-content"><script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script type='text/javascript' src='config.js'></script>
+<script type='text/javascript' src='state_hash.js'></script>
 <script>
 
     function displayResults(state, district) {
@@ -16,7 +17,7 @@
       $.getJSON('mappingFile.json', function (json) {
           let matchedText;
           if (state in json.states) {
-              matchedText = '<b>' + json.states[state][0] + ' and ' + json.states[state][1] + '.' + '</b>';
+              matchedText = json.states[state][0] + ' and ' + json.states[state][1];
           } else {
               var cdNum;
               if (district < 10) {
@@ -26,67 +27,112 @@
               }
               var cdKey = state + cdNum;
               if (cdKey in json.districts) {
-                  matchedText = json.districts[cdKey][0] + ' and ' + json.districts[cdKey][1] + '.';
+                  matchedText = json.districts[cdKey][0] + ' and ' + json.districts[cdKey][1];
               }
           }
-          var totalText = "You're on the " + districtDescription + ' team. Your team is supporting two important races that are happening right now: ' + '<a href="https://www.sisterdistrict.com/sister-races-2017/">' + matchedText + '</a>' + '.';
+          var totalText = "1. You're on the " + districtDescription + ' team. Your team is supporting two important races that are happening right now: ' + '<a href="https://www.sisterdistrict.com/sister-races-2017/">' + matchedText + '</a>' + '.';
           $("#district-results").html(totalText);
+          $("#join-results").show();
       });
     }
 
-    function retrieveDistrict(zip, streetAddr, city, state) {
-        var mapzenAPIKey = config.MAPZEN_API_KEY;
-    $.ajax({
-      method: "GET",
-      url: `https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20json%20where%20url%3D%22https%3A%2F%2Fcongress.api.sunlightfoundation.com%2Fdistricts%2Flocate%3Fzip%3D${zip}%22&format=json&diagnostics=true&callback=`,
-      success: function(res) {
-        let jsonResults = res.query.results.json;
-        if(jsonResults.count === "1") {
-          let result = jsonResults.results;
-          displayResults(result.state, result.district);
-        } else if (city && state && streetAddr) {
-            $.ajax({
-              url: "https://search.mapzen.com/v1/search/structured",
-              method: "GET",
-              dataType: "json",
-              data: {
-                "address": streetAddr,
-                "locality": city,
-                "region": state,
-                "postalcode": zip,
-                "api_key": mapzenAPIKey
-              },
-              success: function( data, status, jqxhr ){
-                console.log( "Request received:", data );
-                var longitude = data.features[0].geometry.coordinates[0];
-                var latitude = data.features[0].geometry.coordinates[1];
-                var url = "https://congress.api.sunlightfoundation.com/districts/locate?latitude=" + latitude + "&longitude=" + longitude + "&format=json&diagnostics=true&callback="
-                $.ajax({
-                  method: "GET",
-                  url: url,
-                  success: function(res) {
-                    if(res.count === 1) {
-                      let result = res.results[0];
-                      displayResults(result.state, result.district);
-                    } else {
-                      districtText = $("<p class='district-text'></p>").text(`We could not find a district matching that address. Please check your spelling and try again.`);
-                      $("#district-results").html(districtText);
-                    }
-
-                  }
-                });
-              },
-              error: function( jqxhr, status, error ){
-                console.log( "Something went wrong!" );
-                districtText = $("<p class='district-text'></p>").text(`We could not find a district matching that address. Please check your spelling and try again.`);
-                $("#district-results").html(districtText);
-              }
-            });
+    function updateDatabase(state, district, zip, emailAddr) {
+        let view_key = "view_307";
+        let page_key = "scene_198";
+        var url = "https://api.knack.com/v1/pages/" + page_key + "/views/" + view_key + "/records";
+        var cdNum;
+        if (district < 10) {
+          cdNum = "0" + district;
         } else {
-            $("#street_address_fields").show();
+          cdNum = "" + district;
         }
-      }
-    })
+        var cdKey = state + cdNum;
+        signupData = {
+            field_1: cdKey,
+            field_2: emailAddr,
+            field_12: state_hash[state],
+            field_17: district,
+            field_67: "Volunteer",
+            field_68: zip,
+            field_148: "No"
+        };
+        console.log(signupData);
+        $.ajax({
+          type: "POST",
+          url: url,
+          headers: {
+              'X-Knack-Application-Id': config.KNACK_APPLICATION_ID,
+              'X-Knack-REST-API-KEY': 'knack',
+              'Content-Type':'application/json'
+          },
+          data: JSON.stringify(signupData),
+          success: function(data) {
+              console.log("success");
+              console.log(data);
+          },
+          error: function( jqxhr, textStatus, errorText ){
+            console.log( "Something went wrong!" );
+            console.log(textStatus);
+            console.log(errorText);
+          }
+        });
+	}
+
+    function retrieveDistrict(zip, streetAddr, city, state, emailAddr) {
+        var mapzenAPIKey = config.MAPZEN_API_KEY;
+        $.ajax({
+          method: "GET",
+          url: `https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20json%20where%20url%3D%22https%3A%2F%2Fcongress.api.sunlightfoundation.com%2Fdistricts%2Flocate%3Fzip%3D${zip}%22&format=json&diagnostics=true&callback=`,
+          success: function(res) {
+            let jsonResults = res.query.results.json;
+            if(jsonResults.count === "1") {
+            let result = jsonResults.results;
+            displayResults(result.state, result.district);
+            updateDatabase(result.state, result.district, zip, emailAddr);
+            } else if (city && state && streetAddr) {
+                $.ajax({
+                url: "https://search.mapzen.com/v1/search/structured",
+                method: "GET",
+                dataType: "json",
+                data: {
+                    "address": streetAddr,
+                    "locality": city,
+                    "region": state,
+                    "postalcode": zip,
+                    "api_key": mapzenAPIKey
+                },
+                success: function( data, status, jqxhr ){
+                    console.log( "Request received:", data );
+                    var longitude = data.features[0].geometry.coordinates[0];
+                    var latitude = data.features[0].geometry.coordinates[1];
+                    var url = "https://congress.api.sunlightfoundation.com/districts/locate?latitude=" + latitude + "&longitude=" + longitude + "&format=json&diagnostics=true&callback="
+                    $.ajax({
+                    method: "GET",
+                    url: url,
+                    success: function(res) {
+                        if(res.count === 1) {
+                            let result = res.results[0];
+                            displayResults(result.state, result.district);
+                            updateDatabase(result.state, result.district, zip, emailAddr);
+                        } else {
+                            districtText = $("<p class='district-text'></p>").text(`We could not find a district matching that address. Please check your spelling and try again.`);
+                            $("#district-results").html(districtText);
+                        }
+    
+                    }
+                    });
+                },
+                error: function( jqxhr, status, error ){
+                    console.log( "Something went wrong!" );
+                    districtText = $("<p class='district-text'></p>").text(`We could not find a district matching that address. Please check your spelling and try again.`);
+                    $("#district-results").html(districtText);
+                }
+                });
+            } else {
+                $("#street_address_fields").show();
+            }
+        }
+      })
   };
 
   $( () => {
@@ -96,7 +142,8 @@
         let streetAddr = e.target.streetAddr.value;
         let city = e.target.city.value;
         let state = e.target.state.value;
-        retrieveDistrict(zip, streetAddr, city, state);
+        let emailAddr = e.target.emailAddr.value;
+        retrieveDistrict(zip, streetAddr, city, state, emailAddr);
         return false;
       });
     });
@@ -142,10 +189,20 @@
    <input type="text" class="zip-field" name="city" placeholder="Your city"><br><br>
    <input type="text" class="zip-field" name="state" placeholder="Your state"><br><br>
        </div>
+   <input type="text" class="zip-field" name="emailAddr" placeholder="Your email address"><br><br>
    <input type="text" class="zip-field" name="zip" placeholder="Your ZIP code"><br><br>
-    <input type="submit" class="submit-button" value="Find your district">
+    <input type="submit" class="submit-button" value="Join">
      </form>
+     <div id="join-results" style="display:none;">
+         <p>Welcome to Sister District.<p>
+         <p>Three things:</p>
     <div id="district-results"></div>
+    <p>2. You&rsquo;ll receive a welcome email from us soon, and the organizers
+    in your district (district captains) will send you instructions on how
+    to get involved soon.</p>
+    <p>3. All this campaign stuff is more fun with friends. You&rsquo;ll make new
+    friends with Sister District, but please tell a few.</p>
+     </div>
     <div id="district-results-footer">
         <p>Have more questions? Check out our <a href="https://www.sisterdistrict.com/faq/">FAQ</a> here.</p>
         <p>You can follow us <a href="https://www.facebook.com/sisterdistrict/">Facebook</a>, <a href="https://twitter.com/Sister_District">Twitter</a>, or <a href="https://www.instagram.com/sister_district">Instagram</a>.</p>
