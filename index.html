@@ -15,19 +15,25 @@
         let view_key = "view_307";
         let page_key = "scene_198";
         var url = "https://api.knack.com/v1/pages/" + page_key + "/views/" + view_key + "/records";
-        var cdNum;
-        if (district < 10) {
-          cdNum = "0" + district;
-        } else {
-          cdNum = "" + district;
+        var stateDistrict;
+        if (district === '0') {
+            stateDistrict = state;
         }
-        var cdKey = state + cdNum;
+        else {
+            var cdNum;
+            if (district < 10) {
+              cdNum = "0" + district;
+            } else {
+              cdNum = "" + district;
+            }
+            stateDistrict = state + cdNum;
+        }
 		var d = new Date();
 		var curr_date = d.getDate();
 		var curr_month = d.getMonth() + 1; //Months are zero based
 		var curr_year = d.getFullYear();
         signupData = {
-            field_1: cdKey,
+            field_1: stateDistrict,
             field_2: emailAddr,
             field_12: state_hash[state],
             field_17: district,
@@ -63,18 +69,18 @@
     function displayAndStoreResults(state, district, city, zip, emailAddr) {
       let districtDescription;
       districtDescription = state + '-' + (district === '0' ? 'at-large' : district);
+      var cdNum;
+      if ((district !== '0') && (district < 10)) {
+          cdNum = "0" + district;
+      } else {
+          cdNum = "" + district;
+      }
+      var cdKey = state + cdNum;
       $.getJSON('mappingFile.json', function (json) {
           let matchedText;
           if (state in json.states) {
               matchedText = json.states[state][0] + ' and ' + json.states[state][1];
           } else {
-              var cdNum;
-              if (district < 10) {
-                  cdNum = "0" + district;
-              } else {
-                  cdNum = "" + district;
-              }
-              var cdKey = state + cdNum;
               if (cdKey in json.districts) {
                   matchedText = json.districts[cdKey][0] + ' and ' + json.districts[cdKey][1];
               }
@@ -82,6 +88,7 @@
           var totalText = "1. You're on the " + districtDescription + ' team. Your team is supporting two important races that are happening right now: ' + '<a href="https://www.sisterdistrict.com/sister-races-2017/">' + matchedText + '</a>' + '.';
           $("#district-results").html(totalText);
           $("#join-results").show();
+          $("#join-button").hide();
 		  updateDatabase(state, city, district, zip, emailAddr, matchedText);
       });
     }
@@ -203,7 +210,9 @@
            <input type="text" class="zip-field" name="city" placeholder="Your city"><br><br>
            <input type="text" class="zip-field" name="state" placeholder="Your state"><br><br>
        </div>
+       <div id="join-button">
         <input type="submit" class="submit-button" value="Join">
+       </div>
      </form>
      <div id="join-results" style="display:none;">
          <p>Welcome to Sister District.<p>
