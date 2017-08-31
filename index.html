@@ -6,7 +6,7 @@
     <body> 
 
 <div id="content" class="main-content" data-content-field="main-content" data-collection-id="582e2f2c3e00beacb43bd4e5" data-edit-main-image="Banner">
-         <div class="sqs-layout sqs-grid-12 columns-12" data-type="page" data-updated-on="1495520265440" id="page-582e2f2c3e00beacb43bd4e5"><div class="row sqs-row"><div class="col sqs-col-12 span-12"><div class="row sqs-row"><div class="col sqs-col-6 span-6"><div class="sqs-block html-block sqs-block-html" data-block-type="2" id="block-yui_3_17_2_4_1479492728419_7547"><div class="sqs-block-content"><p>If you don't know the Congressional District in which you currently live, find it here. </strong></p></div></div></div><div class="col sqs-col-6 span-6"><div class="sqs-block html-block sqs-block-html" data-block-type="2" id="block-yui_3_17_2_2_1489420365319_5464"><div class="sqs-block-content"><h2>Find Your District</h2></div></div><div class="sqs-block code-block sqs-block-code" data-block-type="23" id="block-yui_3_17_2_5_1486690987589_4467"><div class="sqs-block-content"><script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <div class="sqs-layout sqs-grid-12 columns-12" data-type="page" data-updated-on="1495520265440" id="page-582e2f2c3e00beacb43bd4e5"><div class="row sqs-row"><div class="col sqs-col-12 span-12"><div class="row sqs-row"><div class="col sqs-col-6 span-6"><div class="sqs-block html-block sqs-block-html" data-block-type="2" id="block-yui_3_17_2_4_1479492728419_7547"><div class="sqs-block-content"><p>If you don't know the Congressional District in which you currently live, find it here. </strong></p></div></div></div><div class="col sqs-col-6 span-6"><div class="sqs-block html-block sqs-block-html" data-block-type="2" id="block-yui_3_17_2_2_1489420365319_5464"><div class="sqs-block-content"><h2>Join us</h2><p>The Sister District Project relies on volunteers in every congressional district to promote this grassroots effort. Please join the team in your district, no matter how blue or how red, to find out how you can best work to turn red to blue.</p></div></div><div class="sqs-block code-block sqs-block-code" data-block-type="23" id="block-yui_3_17_2_5_1486690987589_4467"><div class="sqs-block-content"><script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script type='text/javascript' src='config.js'></script>
 <script type='text/javascript' src='state_hash.js'></script>
 <script>
@@ -85,7 +85,7 @@
                   matchedText = json.districts[cdKey][0] + ' and ' + json.districts[cdKey][1];
               }
           }
-          var totalText = "1. You're on the " + districtDescription + ' team. Your team is supporting two important races that are happening right now: ' + '<a href="https://www.sisterdistrict.com/sister-races-2017/">' + matchedText + '</a>' + '.';
+          var totalText = "<p>1. You're on the " + districtDescription + ' team. Your team is supporting two important races that are happening right now: ' + '<a href="https://www.sisterdistrict.com/sister-races-2017/">' + matchedText + '</a>' + '.</p>';
           $("#district-results").html(totalText);
           $("#join-results").show();
           $("#join-button").hide();
@@ -186,16 +186,20 @@
         padding: 13px 10px;
         border-radius: 3px;
         box-sizing: border-box;
+		font-family: "Adobe Garamond Pro"; "Times New Roman", Times, serif;
+		font-size: 18px;
+		font-style: normal;
+		color: rgba(26,26,26,0.7);
       }
    </style>
    <form class="zip-entry">
        <div style="float:left">
-           <label for="zip">I live in </label>
-           <input type="text" class="zip-field" id="zip" name="zip" placeholder="ZIP code"><br><br>
+           <label for="zip" class="zip-field">I live in </label>
+           <input type="text" class="zip-field" id="zip" name="zip" placeholder="ZIP code" pattern="^[0-9]{5}(?:-[0-9]{4})?$"><br><br>
        </div>
        <div>
-           <label for="emailAddr">and my email address is </label>
-           <input type="text" class="zip-field" id="emailAddr" name="emailAddr" placeholder="email address"><br><br>
+           <label for="emailAddr" class="zip-field">&nbsp and my email address is </label>
+           <input type="email" class="zip-field" id="emailAddr" name="emailAddr" placeholder="email address" required><br><br>
        </div>
        <div id="street_address_fields" style="display:none;">
            <p>Oh no!</p>

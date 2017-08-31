@@ -7,5 +7,6 @@ Running this code requires a Mapzen API key, which should be in a config.js file
 ```
 var config = {
     MAPZEN_API_KEY: "your_mapzen_api_key_here"
+    KNACK_APPLICATION_ID: "your_knack_application_id_here"
 }
 ```
