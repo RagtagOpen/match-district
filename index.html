@@ -95,52 +95,32 @@
 
     function retrieveDistrict(zip, streetAddr, city, state, emailAddr) {
         var mapzenAPIKey = config.MAPZEN_API_KEY;
+        var googleAPIKey = config.GOOGLE_API_KEY;
+        var address_field = streetAddr + " " + city + " " + state + " " + zip;
+        var districtLookupURL = 'https://www.googleapis.com/civicinfo/v2/representatives?includeOffices=false&roles=legislatorLowerBody&address=' + address_field + '&key=' + googleAPIKey;
         $.ajax({
           method: "GET",
-          url: `https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20json%20where%20url%3D%22https%3A%2F%2Fcongress.api.sunlightfoundation.com%2Fdistricts%2Flocate%3Fzip%3D${zip}%22&format=json&diagnostics=true&callback=`,
+          url: districtLookupURL,
           success: function(res) {
-            let jsonResults = res.query.results.json;
-            if(jsonResults.count === "1") {
-            let result = jsonResults.results;
-            displayAndStoreResults(result.state, result.district, "", zip, emailAddr);
-            } else if (city && state && streetAddr) {
-                $.ajax({
-                url: "https://search.mapzen.com/v1/search/structured",
-                method: "GET",
-                dataType: "json",
-                data: {
-                    "address": streetAddr,
-                    "locality": city,
-                    "region": state,
-                    "postalcode": zip,
-                    "api_key": mapzenAPIKey
-                },
-                success: function( data, status, jqxhr ){
-                    console.log( "Request received:", data );
-                    var longitude = data.features[0].geometry.coordinates[0];
-                    var latitude = data.features[0].geometry.coordinates[1];
-                    var url = "https://congress.api.sunlightfoundation.com/districts/locate?latitude=" + latitude + "&longitude=" + longitude + "&format=json&diagnostics=true&callback="
-                    $.ajax({
-                    method: "GET",
-                    url: url,
-                    success: function(res) {
-                        if(res.count === 1) {
-                            let result = res.results[0];
-            				displayAndStoreResults(result.state, result.district, city, zip, emailAddr);
-                        } else {
-                            districtText = $("<p class='district-text'></p>").text(`We could not find a district matching that address. Please check your spelling and try again.`);
-                            $("#district-results").html(districtText);
-                        }
-    
-                    }
-                    });
-                },
-                error: function( jqxhr, status, error ){
-                    console.log( "Something went wrong!" );
-                    districtText = $("<p class='district-text'></p>").text(`We could not find a district matching that address. Please check your spelling and try again.`);
-                    $("#district-results").html(districtText);
+            let jsonResults = res.divisions;
+            var districtNumString;
+            var stateName;
+            var numDistricts = 0;
+            for (var key in jsonResults) {
+                if (key.match(/ocd-division\/country:us\/state:..\/cd:*/) ) {
+                    numDistricts++;
+                    var splitKey = key.split('/');
+                    stateName = splitKey[2].substring(6).toUpperCase();
+                    districtNumString = splitKey[3].substring(3);
+                } else if (key.match(/ocd-division\/country:us\/state:../)) {
+                    numDistricts++;
+                    var splitKey = key.split('/');
+                    stateName = splitKey[2].substring(6).toUpperCase();
+                    districtNumString = '0';
                 }
-                });
+            }
+            if(numDistricts === 1) {
+                displayAndStoreResults(stateName, districtNumString, "", zip, emailAddr);
             } else {
                 $("#street_address_fields").show();
             }
