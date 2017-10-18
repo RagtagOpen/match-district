@@ -122,7 +122,12 @@
             } else {
                 $("#street_address_fields").show();
             }
-        }
+        },
+          error: function(res) {
+                $("#street_address_fields").show();
+                $("#initial_request_text").hide();
+                $("#error_request_text").show();
+          }
       })
   };
 
@@ -181,9 +186,12 @@
        </div>
        <div id="street_address_fields" style="display:none;">
            <p>Oh no!</p>
-           <p>
+           <p id="initial_request_text">
            Your zip code spans multiple districts, so we need a little more information from you to place you with the correct Sister District.
            Please let us know your street address, your city, and your state.
+           </p>
+           <p id="error_request_text" style="display:none;">
+           That address wasn&rsquo;t found. Please check your spelling and try again.
            </p>
            <p>
            (Don&rsquo;t worry, we&rsquo;re not storing your street address).
