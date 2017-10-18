@@ -105,21 +105,19 @@
             let jsonResults = res.divisions;
             var districtNumString;
             var stateName;
-            var numDistricts = 0;
             for (var key in jsonResults) {
                 if (key.match(/ocd-division\/country:us\/state:..\/cd:*/) ) {
-                    numDistricts++;
                     var splitKey = key.split('/');
                     stateName = splitKey[2].substring(6).toUpperCase();
                     districtNumString = splitKey[3].substring(3);
+                    break;
                 } else if (key.match(/ocd-division\/country:us\/state:../)) {
-                    numDistricts++;
                     var splitKey = key.split('/');
                     stateName = splitKey[2].substring(6).toUpperCase();
                     districtNumString = '0';
                 }
             }
-            if(numDistricts === 1) {
+            if(stateName) {
                 displayAndStoreResults(stateName, districtNumString, "", zip, emailAddr);
             } else {
                 $("#street_address_fields").show();
