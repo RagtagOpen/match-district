@@ -94,29 +94,17 @@
     }
 
     function retrieveDistrict(zip, streetAddr, city, state, emailAddr) {
-        var mapzenAPIKey = config.MAPZEN_API_KEY;
-        var googleAPIKey = config.GOOGLE_API_KEY;
+	var geocodeioAPIKey = config.GEOCODEIO_API_KEY;
         var address_field = streetAddr + " " + city + " " + state + " " + zip;
-        var districtLookupURL = 'https://www.googleapis.com/civicinfo/v2/representatives?includeOffices=false&roles=legislatorLowerBody&address=' + address_field + '&key=' + googleAPIKey;
+        var districtLookupURL = 'https://api.geocod.io/v1.2/geocode?fields=cd&q=' + address_field + '&api_key=' + geocodeioAPIKey;
         $.ajax({
           method: "GET",
           url: districtLookupURL,
           success: function(res) {
-            let jsonResults = res.divisions;
-            var districtNumString;
-            var stateName;
-            for (var key in jsonResults) {
-                if (key.match(/ocd-division\/country:us\/state:..\/cd:*/) ) {
-                    var splitKey = key.split('/');
-                    stateName = splitKey[2].substring(6).toUpperCase();
-                    districtNumString = splitKey[3].substring(3);
-                    break;
-                } else if (key.match(/ocd-division\/country:us\/state:../)) {
-                    var splitKey = key.split('/');
-                    stateName = splitKey[2].substring(6).toUpperCase();
-                    districtNumString = '0';
-                }
-            }
+            let jsonResults = res.results;
+            var districtNumString = jsonResults[0].fields.congressional_districts[0].district_number;
+            var stateName = jsonResults[0].address_componenets.state;
+
             if(stateName) {
                 displayAndStoreResults(stateName, districtNumString, "", zip, emailAddr);
             } else {
