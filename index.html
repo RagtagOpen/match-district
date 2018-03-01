@@ -103,7 +103,7 @@
           success: function(res) {
             let jsonResults = res.results;
             var districtNumString = jsonResults[0].fields.congressional_districts[0].district_number;
-            var stateName = jsonResults[0].address_componenets.state;
+            var stateName = jsonResults[0].address_components.state;
 
             if(stateName) {
                 displayAndStoreResults(stateName, districtNumString, "", zip, emailAddr);
