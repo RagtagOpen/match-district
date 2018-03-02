@@ -94,9 +94,9 @@
     }
 
     function retrieveDistrict(zip, streetAddr, city, state, emailAddr) {
-	var geocodeioAPIKey = config.GEOCODEIO_API_KEY;
+        var geocodioAPIKey = config.GEOCODIO_API_KEY;
         var address_field = streetAddr + " " + city + " " + state + " " + zip;
-        var districtLookupURL = 'https://api.geocod.io/v1.2/geocode?fields=cd&q=' + address_field + '&api_key=' + geocodeioAPIKey;
+        var districtLookupURL = 'https://api.geocod.io/v1.2/geocode?fields=cd&q=' + address_field + '&api_key=' + geocodioAPIKey;
         $.ajax({
           method: "GET",
           url: districtLookupURL,
