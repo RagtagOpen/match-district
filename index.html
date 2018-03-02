@@ -102,6 +102,15 @@
           url: districtLookupURL,
           success: function(res) {
             let jsonResults = res.results;
+
+            if (jsonResults.length < 1) {
+                // No results for that query
+                $("#street_address_fields").show();
+                $("#initial_request_text").hide();
+                $("#error_request_text").show();
+                return;
+            }
+
             var districtNumString = jsonResults[0].fields.congressional_districts[0].district_number;
             var stateName = jsonResults[0].address_components.state;
 
