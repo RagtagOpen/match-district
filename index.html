@@ -94,29 +94,26 @@
     }
 
     function retrieveDistrict(zip, streetAddr, city, state, emailAddr) {
-        var mapzenAPIKey = config.MAPZEN_API_KEY;
-        var googleAPIKey = config.GOOGLE_API_KEY;
+        var geocodioAPIKey = config.GEOCODIO_API_KEY;
         var address_field = streetAddr + " " + city + " " + state + " " + zip;
-        var districtLookupURL = 'https://www.googleapis.com/civicinfo/v2/representatives?includeOffices=false&roles=legislatorLowerBody&address=' + address_field + '&key=' + googleAPIKey;
+        var districtLookupURL = 'https://api.geocod.io/v1.2/geocode?fields=cd&q=' + address_field + '&api_key=' + geocodioAPIKey;
         $.ajax({
           method: "GET",
           url: districtLookupURL,
           success: function(res) {
-            let jsonResults = res.divisions;
-            var districtNumString;
-            var stateName;
-            for (var key in jsonResults) {
-                if (key.match(/ocd-division\/country:us\/state:..\/cd:*/) ) {
-                    var splitKey = key.split('/');
-                    stateName = splitKey[2].substring(6).toUpperCase();
-                    districtNumString = splitKey[3].substring(3);
-                    break;
-                } else if (key.match(/ocd-division\/country:us\/state:../)) {
-                    var splitKey = key.split('/');
-                    stateName = splitKey[2].substring(6).toUpperCase();
-                    districtNumString = '0';
-                }
+            let jsonResults = res.results;
+
+            if (jsonResults.length < 1) {
+                // No results for that query
+                $("#street_address_fields").show();
+                $("#initial_request_text").hide();
+                $("#error_request_text").show();
+                return;
             }
+
+            var districtNumString = jsonResults[0].fields.congressional_districts[0].district_number;
+            var stateName = jsonResults[0].address_components.state;
+
             if(stateName) {
                 displayAndStoreResults(stateName, districtNumString, "", zip, emailAddr);
             } else {
